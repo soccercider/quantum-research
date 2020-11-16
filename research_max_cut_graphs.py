@@ -119,7 +119,7 @@ graphfiles = [] #graph to store all csv files found at location
 
 for file in os.listdir(location):
     if file.endswith(".graph"):
-        graphfiles.append(str(file))
+        graphfiles.append(str(file)) #contains the names of graph files in location
     else:
         continue
 
@@ -131,11 +131,12 @@ for a_file in graphfiles:
         line = line.split(' ')
     f.close()
     file_splits.append(lines)
+    #list of lists that contains each row with info on nodes and weight of edge
 for i in range(len(file_splits)):
     for j in range(len(file_splits[i])):
         edge_and_weight = file_splits[i][j].split(' ')
         file_splits[i][j] = edge_and_weight
-
+    #each line in the file is split into the edges and weight
 Glist = []
 Ginfo = []
 graphnum = -1
@@ -144,19 +145,19 @@ for gr in file_splits:
     G = nx.Graph()
     for i in gr:
         if i[2][1] == '}':
-            G.add_edge(str(i[0]), str(i[1]),weight=1)
+            G.add_edge(str(i[0]), str(i[1]),weight=1) #if graph is unweighted
         else:
-            G.add_edge(str(i[0]), str(i[1]), weight=float(i[3][0:-2]))
+            G.add_edge(str(i[0]), str(i[1]), weight=float(i[3][0:-2])) #if graph is weighted
     Glist.append(G)
-    sim_options = dict(num_reads = 100)
-    quant_options = dict(num_reads = 10, return_embedding = False)
-    sim_sample_response = my_weighted_maximum_cut(G,simulated_anneal_sampler,**sim_options)
+    sim_options = dict(num_reads = 1000)
+    quant_options = dict(num_reads = 1000, return_embedding = False)
+    sim_sample_response = my_weighted_maximum_cut(G,simulated_anneal_sampler,**sim_options) #get the response for simulated_anneal
     sim_sample_response_agg = sim_sample_response.aggregate()
-    sim_enum_min, sim_enum_min_prob = compute_energies(sim_sample_response, title='Simulated annealing in default parameters')
-    quant_sample_response = my_weighted_maximum_cut(G,quantum_anneal_sampler,**quant_options)
+    sim_enum_min, sim_enum_min_prob = compute_energies(sim_sample_response, title='Simulated annealing in default parameters') #obtain minimum energy and probability of getting this value
+    quant_sample_response = my_weighted_maximum_cut(G,quantum_anneal_sampler,**quant_options) #get the response for quantum_anneal
     quant_sample_response_agg = quant_sample_response.aggregate()
-    quantum_enum_min, quantum_enum_min_prob = compute_energies(quant_sample_response, title='Quantum annealing in default parameters')
+    quantum_enum_min, quantum_enum_min_prob = compute_energies(quant_sample_response, title='Quantum annealing in default parameters') #obtain minimum energy and probability of getting this value
     Ginfo.append([graphfiles[graphnum],nx.number_of_edges(G),nx.number_of_nodes(G),nx.density(G),sim_sample_response_agg,sim_enum_min,sim_enum_min_prob,quant_sample_response_agg,quantum_enum_min,quantum_enum_min_prob])
-    df4 = pd.DataFrame(Ginfo, columns=['graph name','number of edges', 'number of vertices', 'network density','sim_response_agg','sim_min_engr','sim_min_engr_prob','quantum_response_agg','quantum_min_engr','quantum_min_engr_prob'])
-    df4.to_csv('df4.csv')
+    graph_info_sim_and_quant = pd.DataFrame(Ginfo, columns=['graph name','number of edges', 'number of vertices', 'network density','sim_response_agg','sim_min_engr','sim_min_engr_prob','quantum_response_agg','quantum_min_engr','quantum_min_engr_prob'])
+    graph_info_sim_and_quant.to_csv(' graph_info_sim_and_quant_1000_1000.csv')
  
